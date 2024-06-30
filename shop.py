@@ -5,7 +5,7 @@ def create_tables() -> None:
     con_local, cur_local = link_connection()
     cur_local.execute(
         "CREATE TABLE IF NOT EXISTS menu(store_id TEXT NOT NULL, item_name TEXT PRIMARY KEY, item_cost INT NOT NULL)")
-    cur_local.execute("CREATE TABLE IF NOT EXISTS inventory(player_id TEXT NOT NULL, item_name TEXT NOT NULL)")
+    cur_local.execute("CREATE TABLE IF NOT EXISTS inventory(player_id TEXT NOT NULL, item_name TEXT NOT NULL, count INT NOT NULL, shop_id TEXT NOT NULL)")
     cur_local.execute("CREATE TABLE IF NOT EXISTS players(player_id TEXT PRIMARY KEY, bucks INT NOT NULL)")
     con_local.close()
 
