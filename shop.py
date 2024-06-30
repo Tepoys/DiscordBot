@@ -67,7 +67,7 @@ def print_shop_items(id: str) -> None:
 
 def main() -> None:
     # test cases
-    # create_tables()
+    create_tables()
     print_shop_items('1')
 
     get_all_shops()
