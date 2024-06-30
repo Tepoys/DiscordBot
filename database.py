@@ -14,5 +14,3 @@ def load_user_data() -> tuple[sqlite3.Connection, sqlite3.Cursor]:
 
 
 con, cur = load_user_data()
-
-
