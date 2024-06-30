@@ -1,26 +1,17 @@
-import sqlite3
-
-
-def load_user_data() -> tuple[sqlite3.Connection, sqlite3.Cursor]:
-    # connect to DB
-    con_local: sqlite3.Connection = sqlite3.connect("database.sqlite")
-    # create cursor for modification
-    cur_local: sqlite3.Cursor = con_local.cursor()
-    # return variables in tuple
-    return con_local, cur_local
+from database import link_connection
 
 
 def create_tables() -> None:
-    con_local, cur_local = load_user_data()
+    con_local, cur_local = link_connection()
     cur_local.execute(
-        "CREATE TABLE IF NOT EXISTS menu(store_id TEXT NOT NULL, item_name TEXT NOT NULL, item_cost INT NOT NULL)")
+        "CREATE TABLE IF NOT EXISTS menu(store_id TEXT NOT NULL, item_name TEXT PRIMARY KEY, item_cost INT NOT NULL)")
     cur_local.execute("CREATE TABLE IF NOT EXISTS inventory(player_id TEXT NOT NULL, item_name TEXT NOT NULL)")
-    cur_local.execute("CREATE TABLE IF NOT EXISTS players(player_id TEXT NOT NULL, bucks INT NOT NULL)")
+    cur_local.execute("CREATE TABLE IF NOT EXISTS players(player_id TEXT PRIMARY KEY, bucks INT NOT NULL)")
     con_local.close()
 
 
 class Shop:
-    con, cur = load_user_data()
+    con, cur = link_connection()
 
     def __init__(self, id: str) -> None:
         self.id = id
@@ -51,7 +42,7 @@ class Shop:
 
 
 def get_all_shops() -> list[Shop]:
-    con_local, cur_local = load_user_data()
+    con_local, cur_local = link_connection()
 
     res = cur_local.execute("SELECT DISTINCT store_id FROM menu")
     shop_ids: list[tuple[str]] = res.fetchall()
