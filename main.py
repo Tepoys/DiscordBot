@@ -16,6 +16,8 @@ intents.message_content = True  # NOQA
 
 bot: commands.Bot = commands.Bot(command_prefix='/', intents=intents)
 
+shops: dict[str, shop.Shop] = shop.get_all_shops()
+
 
 class Collection:
     def __init__(self, user_id: str):
