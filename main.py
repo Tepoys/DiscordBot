@@ -1,5 +1,4 @@
 import os
-import sqlite3
 from typing import Final
 
 import discord
@@ -7,26 +6,81 @@ from discord import Intents
 from discord.ext import commands
 from dotenv import load_dotenv
 
+import shop
+from player import Player
+
 load_dotenv()
 TOKEN: Final[str] = os.getenv("DISCORD_TOKEN")
 intents: Intents = Intents.default()
 intents.message_content = True  # NOQA
 
-bot: commands.Bot = commands.Bot(intents=intents)
+bot: commands.Bot = commands.Bot(command_prefix='/', intents=intents)
 
 
+class Collection:
+    def __init__(self, user_id: str):
+        self.view_dictionary = {}
+        self.user_id = user_id
+        self.player = Player(id=user_id)
+        self.view_dictionary['menu'] = Menu(self)
+        self.view_dictionary['shop'] = Shop(self)
+        self.view_dictionary['leaderboard'] = Leaderboard(self)
+        self.view_dictionary['unbox'] = Unbox(self)
+
+    def menu(self):
+        return self.view_dictionary['menu']
+
+    def shop(self):
+        return self.view_dictionary['shop']
+
+    def leaderboard(self):
+        return self.view_dictionary['leaderboard']
+
+    def unbox(self):
+        return self.view_dictionary['unbox']
 
 
+class Menu(discord.ui.View):
+    def __init__(self, collection: Collection):
+        super().__init__()
+        self.collection = collection
+        raise NotImplementedError
 
-@bot.slash_command(name='ping', description="Pong!", guild_ids=['1126289653654360195'])
-async def ping(ctx: discord.ApplicationContext) -> None:
-    await ctx.respond(f"Pong (Latency is {round(bot.latency * 1000)}ms)")
+
+class Shop(discord.ui.View):
+    def __init__(self, collection: Collection):
+        super().__init__()
+        self.collection = collection
+        raise NotImplementedError
 
 
-@bot.slash_command(name='test', description="Testing pycord features", guild_ids=['1126289653654360195'])
-async def test(ctx: discord.ApplicationContext) -> None:
-    await ctx.send_response("This is a response")
-    await ctx.send_followup("This is a followup")
+class Leaderboard(discord.ui.View):
+    def __init__(self, collection: Collection):
+        super().__init__()
+        self.collection = collection
+        raise NotImplementedError
+
+
+class Unbox(discord.ui.View):
+    def __init__(self, collection: Collection):
+        super().__init__()
+        self.collection = collection
+        raise NotImplementedError
+
+
+# Test and initiation below
+
+
+# noinspection PyUnresolvedReferences
+@bot.tree.command(name='ping', description="Pong!")
+async def ping(interaction: discord.Interaction) -> None:
+    await interaction.response.send_message(f"Pong (Latency is {round(bot.latency * 1000)}ms)")
+
+
+@bot.tree.command(name='test', description="Testing pycord features")
+async def test(interaction: discord.Interaction) -> None:
+    await interaction.response.send_message("This is a response")
+    await interaction.followup.send("This is a followup")
 
 
 class TestView(discord.ui.View):
@@ -34,8 +88,9 @@ class TestView(discord.ui.View):
         super().__init__()
         self.interaction_count = 0
 
+    # noinspection PyUnresolvedReferences
     @discord.ui.button(label="Click here!", style=discord.ButtonStyle.blurple)
-    async def click(self, button: discord.ui.Button, inter: discord.Interaction) -> None:
+    async def callback(self, inter: discord.Interaction, button: discord.ui.Button) -> None:
         if self.interaction_count == 0:
             await inter.response.send_message("Hello!")
         elif self.interaction_count == 1:
@@ -46,7 +101,7 @@ class TestView(discord.ui.View):
         return
 
 
-def create_embed() -> discord.Embed:
+def create_test_embed() -> discord.Embed:
     embed: discord.Embed = discord.Embed(
         title="My Embed",
         description='Simple embed that definitely took me less than 5 minutes to make',
@@ -66,21 +121,21 @@ def create_embed() -> discord.Embed:
     return embed
 
 
-@bot.slash_command(name='view', description="Testing Views", guild_ids=['1126289653654360195'])
-async def view(ctx: discord.ApplicationContext) -> None:
-    await ctx.respond(view=TestView(), embed=create_embed())
+@bot.tree.command(name='view', description="Testing Views")
+async def view(interaction: discord.Interaction) -> None:
+    await interaction.response.send_message(view=TestView(), embed=create_test_embed())
 
 
 @bot.event
 async def on_ready() -> None:
     print(f'{bot.user.name} (id: {bot.user.id}) is now running')
-    '''
+
     try:
-        await bot.sync_commands()
+        await bot.tree.sync()
         print('Commands Synced')
     except Exception as e:
         print(e)
-    '''
+
     print('The bot is currently in guilds with id:')
     for guild in bot.guilds:
         print(guild.id)
@@ -90,7 +145,14 @@ def main() -> None:
     print('Starting bot...')
     bot.run(TOKEN)
 
+    cleanup()
+
+
+def cleanup() -> None:
+    print('Cleaning up...')
+    shop.cleanup()
+    print('Cleanup compleat')
+
 
 if __name__ == "__main__":
     main()
- 
