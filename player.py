@@ -1,3 +1,3 @@
 class Player:
-    def __init__(self, *, id: int, bucks: int, name: str = None, shop):
+    def __init__(self, *, id: str):
         raise NotImplementedError
